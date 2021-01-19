@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <style>
+      .cell {
+        width: 100px;
+        height: 100px;
+        border: 1px solid black;
+        display: inline-block;
+        margin: 3px;
+        font-size:50px;
+        line-height: 100px;
+        text-align: center;
+        vertical-align: middle;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="board">
+
+    </div>
+
+    <script type="text/javascript">
+      let pattern = [
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0]
+      ]
+
+      let color = 1;
+
+      function show() {
+        let board = document.getElementById('board');
+        board.innerHTML = "";
+        for (let i=0;i<3;i++) {
+          for (let j=0;j<3;j++) {
+            let cell = document.createElement('div');
+            cell.classList.add("cell");
+            cell.innerHTML =
+              pattern[i][j] == 2 ? "❌" :
+              pattern[i][j] == 1 ? "⭕️" : ""
+            cell.addEventListener('click', () => move(i, j))
+            board.appendChild(cell);
+          }
+          board.appendChild(document.createElement("br"))
+
+        }
+      }
+
+      function clone(array) {
+        return JSON.parse(JSON.stringify(array));
+      }
+
+      function move(x, y) {
+        pattern[x][y] = color;
+        isWin = check(pattern, color);
+        color = 3 - color;
+        console.log(evaluate(pattern,color))
+
+        if (isWin) {
+          alert(color == 1 ? "❌ WIN" : "⭕️ WIN")
+        } else {
+          computerMove();
+        }
+
+        show();
+      }
+
+      function computerMove() {
+        let result = evaluate(pattern,color);
+        if (!result.point) {
+          alert('Draw.')
+          return;
+        }
+        x = result.point[0];
+        y = result.point[1];
+        pattern[x][y] = color;
+        isWin = check(pattern, color);
+        color = 3 - color;
+        console.log(evaluate(pattern,color))
+
+        if (isWin) {
+          alert(color == 1 ? "❌ WIN" : "⭕️ WIN")
+        }
+
+        show()
+      }
+
+      function willWin(pattern, color) {
+        for (let i=0;i<3;i++) {
+          for (let j=0;j<3;j++) {
+            if (pattern[i][j] != 0 ) {
+              continue;
+            } else {
+              new_pattern = clone(pattern)
+              new_pattern[i][j] = color;
+              if (check(new_pattern, color)) {
+                return [i, j]
+              }
+            }
+          }
+        }
+        return null;
+      }
+
+      function evaluate(pattern, color) {
+        let score = -2;
+        let point = willWin(pattern,color);
+
+        if (point) {
+          return {
+            point: point,
+            score: 1
+          }
+        }
+
+        for (let i=0;i<3;i++) {
+          for (let j=0;j<3;j++) {
+            if (pattern[i][j] != 0 ) {
+              continue;
+            } else {
+              new_pattern = clone(pattern)
+              new_pattern[i][j] = color;
+              result = evaluate(new_pattern, 3-color);
+              if ( 0 - result.score > score) {
+                point = [i, j];
+                score = 0 - result.score;
+              }
+            }
+          }
+        }
+
+        return {
+          point: point,
+          score: point ? score : 0
+        }
+
+
+      }
+
+      function check(pattern, color) {
+        for (let i=0;i<3;i++) {
+          let win = true;
+          for (let j=0;j<3;j++) {
+            if (pattern[i][j] != color) {
+              win = false;
+              break;
+            }
+          }
+          if (win) {
+            return true;
+          }
+        }
+
+        for (let i=0;i<3;i++) {
+          let win = true;
+          for (let j=0;j<3;j++) {
+            if (pattern[j][i] != color) {
+              win = false;
+              break;
+            }
+          }
+          if (win) {
+            return true;
+          }
+        }
+
+        if (pattern[0][0] == color && pattern[1][1] == color && pattern[2][2] == color) {
+          return true;
+        }
+
+        if (pattern[0][2] == color && pattern[1][1] == color && pattern[2][0] == color) {
+          return true;
+        }
+
+        return false;
+
+      }
+
+      show()
+
+    </script>
+  </body>
+</html>
